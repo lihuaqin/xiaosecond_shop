@@ -1,23 +1,20 @@
 package com.xiaosecond.shop.controller;
 
 
-import com.xiaosecond.shop.cache.Cache;
+import com.xiaosecond.shop.annotation.BussinessLog;
 import com.xiaosecond.shop.common.Permission;
 import com.xiaosecond.shop.common.Response;
 import com.xiaosecond.shop.common.ResponseUtils;
 import com.xiaosecond.shop.security.AuthorizationUser;
 import com.xiaosecond.shop.service.SysMenuService;
 import com.xiaosecond.shop.service.SysUserService;
-import com.xiaosecond.shop.utils.CookieUtil;
+import com.xiaosecond.shop.utils.LogObjectHolder;
+import com.xiaosecond.shop.vo.SysMenuVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -34,11 +31,6 @@ import javax.servlet.http.HttpServletRequest;
 public class SysMenuController {
 
 
-    @Autowired
-    private Cache cache;
-
-    @Autowired
-    private CookieUtil cookieUtil;
 
     @Autowired
     private SysMenuService sysMenuService;
@@ -55,5 +47,36 @@ public class SysMenuController {
         log.info("listForRouter>>>>>>shiroUser:{}" , shiroUser.toString());
         return ResponseUtils.success(sysMenuService.getSideBarMenus(shiroUser.getRoleList()));
     }
+
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @ResponseBody
+    public Response list() {
+        return ResponseUtils.success(sysMenuService.getMenus());
+    }
+
+    @RequestMapping(value = "/tree", method = RequestMethod.GET)
+    @ResponseBody
+    public Response tree() {
+        return ResponseUtils.success(sysMenuService.tree());
+    }
+
+    @RequestMapping(method = RequestMethod.POST)
+    @BussinessLog(value = "编辑菜单", key = "name")
+    @RequiresPermissions(value = {Permission.MENU_EDIT})
+    @ResponseBody
+    public Response save( SysMenuVo menu) {
+        sysMenuService.saveSysMenuVo(menu);
+        return ResponseUtils.success();
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE)
+    @BussinessLog(value = "删除菜单", key = "id")
+    @RequiresPermissions(value = {Permission.MENU_DEL})
+    @ResponseBody
+    public Response remove(@RequestParam Long id) {
+        sysMenuService.delMenuContainSubMenus(id);
+        return ResponseUtils.success();
+    }
+
 
 }

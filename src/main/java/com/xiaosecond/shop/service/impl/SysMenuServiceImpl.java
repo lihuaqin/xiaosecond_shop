@@ -1,9 +1,15 @@
 package com.xiaosecond.shop.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.xiaosecond.shop.excpetion.MyException;
+import com.xiaosecond.shop.service.CommonService;
 import com.xiaosecond.shop.utils.Lists;
 import com.xiaosecond.shop.view.SysMenuView;
 import com.xiaosecond.shop.view.node.MenuMeta;
+import com.xiaosecond.shop.view.node.MenuNode;
 import com.xiaosecond.shop.view.node.RouterMenu;
+import com.xiaosecond.shop.view.node.TreeSelectNode;
+import com.xiaosecond.shop.vo.ShopAttrValVo;
 import com.xiaosecond.shop.vo.SysMenuVo;
 import com.xiaosecond.shop.mapper.SysMenuMapper;
 import com.xiaosecond.shop.service.SysMenuService;
@@ -29,6 +35,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuVo> im
 
     @Autowired
     private SysMenuMapper sysMenuMapper;
+
+    @Autowired
+    private CommonService<SysMenuVo> commonService;
+
     /**
      * 获取左侧菜单树
      * @return
@@ -107,4 +117,129 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuVo> im
         });
     }
 
+
+    public List<MenuNode> getMenus(){
+        List<MenuNode> list = transferMenuNode(sysMenuMapper.getMenus());
+        List<MenuNode> result = generateTree(list);
+        for (MenuNode menuNode : result) {
+            if (!menuNode.getChildren().isEmpty()) {
+                sortTree(menuNode.getChildren());
+                for (MenuNode menuNode1 : menuNode.getChildren()) {
+                    if (!menuNode1.getChildren().isEmpty()) {
+                        sortTree(menuNode1.getChildren());
+                    }
+                }
+            }
+        }
+        sortTree(result);
+        return result;
+    }
+
+    private List<MenuNode> generateTree(List<MenuNode> list) {
+        List<MenuNode> result = new ArrayList<>(20);
+        Map<Long, MenuNode> map = Lists.toMap(list, "id");
+        for (Map.Entry<Long, MenuNode> entry : map.entrySet()) {
+            MenuNode menuNode = entry.getValue();
+
+            if (menuNode.getParentId().intValue() != 0) {
+                MenuNode parentNode = map.get(menuNode.getParentId());
+                parentNode.getChildren().add(menuNode);
+            } else {
+                result.add(menuNode);
+            }
+        }
+        return result;
+    }
+
+    private void sortTree(List<MenuNode> list) {
+        Collections.sort(list, new Comparator<MenuNode>() {
+            @Override
+            public int compare(MenuNode o1, MenuNode o2) {
+                return o1.getNum() - o2.getNum();
+            }
+        });
+    }
+    private List<MenuNode> transferMenuNode(List<SysMenuView> menus) {
+        List<MenuNode> menuNodes = new ArrayList<>();
+        for (SysMenuView menu:menus) {
+            MenuNode menuNode = new MenuNode();
+            menuNode.setId(menu.getId().longValue());
+            menuNode.setIcon(menu.getIcon());
+            menuNode.setParentId(menu.getParentId());
+            menuNode.setName(menu.getName());
+            menuNode.setUrl(menu.getUrl());
+            menuNode.setLevels(menu.getLevels());
+            menuNode.setIsmenu(menu.getIsmenu());
+            menuNode.setNum(menu.getNum());
+            menuNode.setCode(menu.getCode());
+            if(menu.getComponent() != null)menuNode.setComponent(menu.getComponent());
+            menuNode.setHidden(menu.getHidden() == 1);
+            menuNode.setPcode(menu.getPcode());
+            menuNodes.add(menuNode);
+        }
+        return menuNodes;
+    }
+
+    public List<TreeSelectNode> tree(){
+        List<MenuNode> list = transferMenuNode(sysMenuMapper.getMenus());
+        List<TreeSelectNode> treeSelectNodes = Lists.newArrayList();
+        for (MenuNode menuNode : list) {
+            TreeSelectNode tsn = transfer(menuNode);
+            treeSelectNodes.add(tsn);
+        }
+        return treeSelectNodes;
+    }
+
+    public TreeSelectNode transfer(MenuNode node) {
+        TreeSelectNode tsn = new TreeSelectNode();
+        tsn.setId(node.getCode());
+        tsn.setLabel(node.getName());
+        if (node.getChildren() != null && !node.getChildren().isEmpty()) {
+            List<TreeSelectNode> children = Lists.newArrayList();
+            for (MenuNode child : node.getChildren()) {
+                children.add(transfer(child));
+            }
+            tsn.setChildren(children);
+        }
+        return tsn;
+    }
+
+    public void saveSysMenuVo(SysMenuVo menu){
+        //判断是否存在该编号
+        commonService.checkRepeat(menu.getCode() , menu.getId(),"code" , sysMenuMapper);
+        menuSetPcode(menu);
+        if(menu.getId() == null){
+            sysMenuMapper.insert(menu);
+        }else{
+            sysMenuMapper.updateById(menu);
+        }
+
+    }
+    public void menuSetPcode(SysMenuVo menu) {
+        if (StringUtils.isEmpty(menu.getPcode()) || "0".equals(menu.getPcode())) {
+            menu.setPcode("0");
+            menu.setPcodes("[0],");
+            menu.setLevels(1);
+        } else {
+            QueryWrapper<SysMenuVo> query = new QueryWrapper<>();
+            query.eq("code" , menu.getPcode());
+            SysMenuVo pMenu = sysMenuMapper.selectOne(query);
+            Integer pLevels = pMenu.getLevels();
+            menu.setPcode(pMenu.getCode());
+            //如果编号和父编号一致会导致无限递归
+            if (menu.getCode().equals(menu.getPcode())) {
+                throw new MyException("编号和父编号一致" , "menuSetPcode");
+            }
+            menu.setLevels(pLevels + 1);
+            menu.setPcodes(pMenu.getPcodes() + "[" + pMenu.getCode() + "],");
+        }
+    }
+
+    public void delMenuContainSubMenus(Long id){
+        SysMenuVo menu = sysMenuMapper.selectById(id);
+        //删除所有子菜单
+        sysMenuMapper.delByPcode("%[" + menu.getCode() + "]%");
+        //删除当前菜单
+        sysMenuMapper.deleteById(id);
+    }
 }

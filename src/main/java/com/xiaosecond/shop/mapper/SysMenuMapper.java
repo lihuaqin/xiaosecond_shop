@@ -1,6 +1,7 @@
 package com.xiaosecond.shop.mapper;
 
 import com.xiaosecond.shop.view.SysMenuView;
+import com.xiaosecond.shop.view.node.MenuNode;
 import com.xiaosecond.shop.vo.SysMenuVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
@@ -24,5 +25,9 @@ public interface SysMenuMapper extends BaseMapper<SysMenuVo> {
     List<String> getResUrlsByRoleId(Long roleId);
 
     List<SysMenuView> getMenusByRoleids(@Param("roleIds") List<Long> roleIds);
+
+    List<SysMenuView> getMenus();
+
+    void delByPcode(String pcode);
 
 }

@@ -1,5 +1,5 @@
 server:
-  port: 5081
+  port: 5082
   servlet:
     context-path: /xiaosecond_shop
 spring:

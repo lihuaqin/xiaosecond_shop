@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaosecond.shop.mapper.ShopExpressInfoMapper">
+    <sql id="Base_Column_List" >
+        t.id				,
+        t.creater			,
+        t.create_date		,
+        t.updater			,
+        t.update_date		,
+        t.express_company AS expressCompany	,
+        t.id_order	AS	idOrder	,
+        t.info				,
+        t.shipping_sn	AS shippingSn	,
+        t.state
+    </sql>
+    <select id="getByOrderId" resultType="com.xiaosecond.shop.view.ShopExpressInfoView">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM
+            t_shop_express_info t
+        WHERE
+            t.id_order = #{orderId}
+    </select>
+
+</mapper>

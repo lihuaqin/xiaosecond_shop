@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaosecond.shop.mapper.ShopGoodsMapper">
+    <sql id="Base_Column_List" >
+        t.id			,
+        t.creater		,
+        t.create_date	,
+        t.updater		,
+        t.update_date	,
+        t.descript		,
+        t.detail		,
+        t.gallery		,
+        t.id_category	AS idCategory,
+        t.is_delete		AS isDelete,
+        t.is_hot		AS isHot,
+        t.is_new		AS isNew,
+        t.is_on_sale	AS isOnSale,
+        t.like_num		AS likeNum,
+        t.name			,
+        t.pic			,
+        t.price			,
+        t.stock
+    </sql>
+
+    <!--分页查询****************start**********************************-->
+    <resultMap type="com.xiaosecond.shop.view.ShopGoodsView" id="listPage_result">
+        <result column="idCategory" property="idCategory" />
+        <collection property="category"
+                    column="{idCategory=idCategory}"  select="getCategory">
+        </collection>
+    </resultMap>
+    <select id="listPage" resultMap="listPage_result">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM
+            t_shop_goods t
+        WHERE
+        1=1
+        <if test="param.name != null and param.name != '' ">
+            AND t.name  like #{param.name}
+        </if>
+        ORDER BY t.id DESC
+    </select>
+    <select id="getCategory" resultType="com.xiaosecond.shop.vo.ShopCategoryVo">
+        SELECT
+            t.id			,
+            t.creater		,
+            t.create_date	,
+            t.updater		,
+            t.update_date	,
+            t.descript		,
+            t.icon			,
+            t.is_delete	AS isDelete	,
+            t.name			,
+            t.pid			,
+            t.show_index AS showIndex	,
+            t.sort			,
+            t.url
+        FROM
+            t_shop_category t
+        WHERE
+            t.id = #{idCategory}
+    </select>
+    <!--分页查询****************end**********************************-->
+
+</mapper>

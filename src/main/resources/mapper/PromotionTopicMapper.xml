@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaosecond.shop.mapper.PromotionTopicMapper">
+    <sql id="Base_Column_List" >
+        t.id			,
+        t.creater		,
+        t.create_date	,
+        t.updater		,
+        t.update_date	,
+        t.disabled		,
+        t.id_article	AS idArticle,
+        t.id_goods_list	AS idGoodsList,
+        t.pv			,
+        t.title
+    </sql>
+
+    <!--分页查询****************start**********************************-->
+    <resultMap type="com.xiaosecond.shop.view.PromotionTopicView" id="listPage_result">
+        <result column="idArticle" property="idArticle" />
+        <collection property="article"
+                    column="{idArticle=idArticle}"  select="getArticle">
+        </collection>
+
+    </resultMap>
+
+    <select id="listPage" resultMap="listPage_result">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM
+        t_promotion_topic t
+    </select>
+
+    <select id="getArticle" resultType="com.xiaosecond.shop.vo.CmsArticleVo">
+        SELECT
+            id			,
+            creater		,
+            create_date	,
+            updater		,
+            update_date	,
+            author		,
+            content		,
+            id_channel	AS idChannel,
+            img			,
+            title
+        FROM
+            t_cms_article t
+        WHERE
+            t.id = #{idArticle}
+    </select>
+
+    <!--分页查询****************END**********************************-->
+</mapper>

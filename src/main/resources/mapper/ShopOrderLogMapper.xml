@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaosecond.shop.mapper.ShopOrderLogMapper">
+    <sql id="Base_Column_List" >
+        t.id			,
+        t.create_date	,
+        t.update_date	,
+        t.descript		,
+        t.id_order	AS 	idOrder,
+        t.create_date	AS createTime
+    </sql>
+    <select id="queryByIdOrder" resultType="com.xiaosecond.shop.vo.ShopOrderLogVo">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM
+            t_shop_order_log t
+        WHERE
+            t.id_order = #{idOrder}
+
+    </select>
+
+</mapper>

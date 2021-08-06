@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.1.222:3306/connect_manage?useUnicode=true&characterEncoding=utf-8&useSSL=FALSE&serverTimezone=Asia/Shanghai
+
+
+jwt:
+  secret: msjJwtSecret #JWT加解密使用的密钥
+  expiration: 180 #JWT的超期限时间(60*3) 3分钟
+
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    path: /usr/local/logs/connect_manage/
+
+mqtt:
+  ip: 192.168.1.24
+  port: 1883
+  username: admin
+  password: password
+  qos: 2
+  hasSSL: false
+  clientId: mqtt_server_pub
+  topic: connect_manage
+  device_data_topic: /device/data/report/#     #设备实时数据上报
+  device_alarm_topic: /device/alarm/report/#     #设备告警上报
+  device_event_topic: /device/event/report/#     #设备事件上报
+  invalidurl_cache_timeout: 180    #连接失败的mqtt地址 缓存失效时间 (单位秒)

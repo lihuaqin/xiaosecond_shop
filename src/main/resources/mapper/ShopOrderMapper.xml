@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaosecond.shop.mapper.ShopOrderMapper">
+    <sql id="Base_Column_List" >
+        t.id						,
+        t.create_date				,
+        t.creater					,
+        t.update_date				,
+        t.updater					,
+        t.admin_message		AS 	adminMessage	,
+        t.confirm_receiving_time	AS confirmReceivingTime,
+        t.consignee					,
+        t.consignee_address	AS	consigneeAddress	,
+        t.coupon_price	 AS 	couponPrice		,
+        t.id_address		AS idAddress		,
+        t.id_express	AS idExpress			,
+        t.id_user	AS 		idUser		,
+        t.message					,
+        t.mobile					,
+        t.order_sn	AS orderSn				,
+        t.pay_id	AS 	payId			,
+        t.pay_status	AS payStatus			,
+        t.pay_time		AS 	payTime		,
+        t.pay_type		AS 	payType		,
+        t.real_price	AS 	realPrice		,
+        t.shipping_amount	AS shippingAmount		,
+        t.shipping_sn	AS shippingSn			,
+        t.shipping_time	AS shippingTime			,
+        t.status					,
+        t.total_price	AS totalPrice			,
+        t.trade_amount	AS tradeAmount
+    </sql>
+    <!--分页查询****************start**********************************-->
+    <resultMap type="com.xiaosecond.shop.view.ShopOrderView" id="listPage_result">
+        <result column="id" property="id" />
+        <result column="idAddress" property="idAddress" />
+        <result column="idUser" property="idUser" />
+        <collection property="address"
+                    column="{idAddress=idAddress}"  select="getAddress">
+        </collection>
+        <collection property="items"
+                    column="{orderId=id}"  select="getItems">
+        </collection>
+
+        <collection property="user"
+                    column="{idUser=idUser}"  select="getUser">
+        </collection>
+
+    </resultMap>
+    <select id="listPage" resultMap="listPage_result">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM
+            t_shop_order t
+        WHERE
+            1=1
+        <if test="param.mobile != null and param.mobile != '' ">
+            AND t.mobile  like #{param.mobile}
+        </if>
+        <if test="param.orderSn != null and param.orderSn != '' ">
+            AND t.order_sn  = #{param.orderSn}
+        </if>
+        <if test="param.status != null  ">
+            AND t.status  = #{param.status}
+        </if>
+        <if test="param.startDate != null and param.startDate != '' ">
+            AND t.create_date  >= #{param.startDate}
+        </if>
+        <if test="param.endDate != null and param.endDate != '' ">
+            AND #{param.endDate} >= t.create_date
+        </if>
+        ORDER BY t.id DESC
+    </select>
+
+    <select id="getAddress" resultType="com.xiaosecond.shop.vo.ShopAddressVo">
+        SELECT
+            t.id			,
+            t.create_date	,
+            t.update_date	,
+            t.address_detail AS addressDetail,
+            t.area_code	AS	areaCode,
+            t.city			,
+            t.district		,
+            t.id_user	AS 	idUser,
+            t.is_default	AS isDefault,
+            t.is_delete		AS isDelete,
+            t.name			,
+            t.post_code	AS postCode	,
+            t.province		,
+            t.tel
+        FROM
+            t_shop_address t
+        WHERE
+            t.id = #{idAddress}
+    </select>
+
+    <select id="getItems" resultType="com.xiaosecond.shop.vo.ShopOrderItemVo">
+        SELECT
+            t.id			,
+            t.create_date	,
+            t.update_date	,
+            t.count			,
+            t.id_goods	AS idGoods	,
+            t.id_order	AS idOrder	,
+            t.id_sku	AS	idSku,
+            t.price			,
+            t.total_price	AS totalPrice
+        FROM
+            t_shop_order_item t
+        WHERE
+            t.id_order = #{orderId}
+    </select>
+
+    <select id="getUser" resultType="com.xiaosecond.shop.vo.ShopUserVo">
+        SELECT
+            t.id					,
+            t.avatar				,
+            t.create_date			,
+            t.gender				,
+            t.last_login_time	AS 	lastLoginTime,
+            t.mobile				,
+            t.nick_name				,
+            t.password				,
+            t.salt					,
+            t.wechat_head_img_url AS wechatHeadImgUrl	,
+            t.wechat_nick_name	AS 	wechatNickName,
+            t.wechat_open_id    AS wechatOpenId
+        FROM
+            t_shop_user t
+        WHERE
+            t.id = #{idUser}
+    </select>
+    <!--分页查询****************END**********************************-->
+    <!--getByOrderSn****************START**********************************-->
+    <resultMap type="com.xiaosecond.shop.view.ShopOrderView" id="getByOrderSn_result">
+        <result column="idExpress" property="idExpress" />
+        <collection property="express"
+                    column="{idExpress=idExpress}"  select="getExpress">
+        </collection>
+    </resultMap>
+    <select id="getByOrderSn" resultMap="getByOrderSn_result">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM
+            t_shop_order t
+        WHERE
+            t.order_sn = #{orderSn}
+    </select>
+
+    <select id="getExpress" resultType="com.xiaosecond.shop.vo.SysExpressVo">
+        SELECT
+            t.id			,
+            t.creater		,
+            t.create_date	,
+            t.updater		,
+            t.update_date	,
+            t.code			,
+            t.disabled		,
+            t.name			,
+            t.sort
+        FROM
+            t_sys_express t
+        WHERE
+            t.id = #{idExpress}
+    </select>
+
+    <!--getByOrderSn****************END**********************************-->
+
+    <select id="count" resultType="int">
+        SELECT COUNT(0) FROM t_shop_order
+    </select>
+
+    <select id="orderSumPrice" resultType="Object">
+        select sum(real_price) from t_shop_order where status != #{status}
+    </select>
+
+    <select id="countStatus" resultType="Map">
+        SELECT status ,count(1) as count FROM `t_shop_order` GROUP BY status
+    </select>
+</mapper>

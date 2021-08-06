@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaosecond.shop.mapper.ShopUserMapper">
+    <sql id="Base_Column_List" >
+        t.id				,
+        t.avatar			,
+        t.gender			,
+        t.last_login_time AS 	lastLoginTime,
+        t.mobile			,
+        t.nick_name		AS 	nickName,
+        t.password			,
+        t.salt				,
+        t.creater			,
+        t.create_date		,
+        t.updater			,
+        t.update_date
+    </sql>
+    <select id="listPage" resultType="com.xiaosecond.shop.view.ShopUserView">
+        SELECT
+            <include refid="Base_Column_List" />,
+            t.create_date AS createTime
+        FROM
+            t_shop_user t
+        WHERE
+            1=1
+        <if test="param.nickName != null and param.nickName != '' ">
+            AND t.nick_name  like #{param.nickName}
+        </if>
+        <if test="param.mobile != null and param.mobile != '' ">
+            AND t.mobile  like #{param.mobile}
+        </if>
+        <if test="param.startLastLoginTime != null and param.startLastLoginTime != '' ">
+            AND t.last_login_time  >= #{param.startLastLoginTime}
+        </if>
+        <if test="param.endLastLoginTime != null and param.endLastLoginTime != '' ">
+            AND #{param.endLastLoginTime} >= t.last_login_time
+        </if>
+        <if test="param.startRegDate != null and param.startRegDate != '' ">
+            AND t.create_date  >= #{param.startRegDate}
+        </if>
+        <if test="param.endRegDate != null and param.endRegDate != '' ">
+            AND #{param.endRegDate} >= t.create_date
+        </if>
+    </select>
+
+    <select id="count" resultType="int">
+        SELECT COUNT(0) FROM t_shop_user
+    </select>
+
+</mapper>

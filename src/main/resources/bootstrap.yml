@@ -1,0 +1,25 @@
+server:
+  port: 5081
+  servlet:
+    context-path: /xiaosecond_shop
+spring:
+  profiles:
+    active: dev
+  application:
+    name: xiaosecond_shop
+
+
+
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+
+
+
+
+account:
+  create:
+    password: 888888
+
+
+

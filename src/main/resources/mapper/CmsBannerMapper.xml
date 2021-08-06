@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaosecond.shop.mapper.CmsBannerMapper">
+    <sql id="Base_Column_List" >
+        t.id			,
+        t.id_file	AS	idFile,
+        t.page			,
+        t.param			,
+        t.title			,
+        t.type			,
+        t.url			,
+        t.creater		,
+        t.create_date	,
+        t.updater		,
+        t.update_date
+    </sql>
+    <select id="getBannerByCategoryId" resultType="com.xiaosecond.shop.vo.CmsBannerVo">
+
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM
+            t_shop_category_banner_rel tscbr
+        LEFT JOIN
+            t_cms_banner t
+        ON
+            tscbr.id_banner = t.id
+        WHERE
+            tscbr.id_category = #{categoryId}
+    </select>
+
+</mapper>

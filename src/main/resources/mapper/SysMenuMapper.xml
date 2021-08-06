@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaosecond.shop.mapper.SysMenuMapper">
+    <select id="getResCodesByRoleId" resultType="String">
+
+        select m.code from t_sys_relation rel inner join t_sys_menu m on rel.menuid = m.id where m.status=1 and  rel.roleid = #{roleid}
+
+    </select>
+
+    <select id="getResUrlsByRoleId" resultType="String">
+
+        select m.url from t_sys_relation rel inner join t_sys_menu m on rel.menuid = m.id where m.status=1 and  rel.roleid = #{roleid}
+
+    </select>
+
+    <select id="getMenusByRoleids" resultType="com.xiaosecond.shop.view.SysMenuView">
+        SELECT
+            m1.id AS id,
+            m1.icon AS icon,
+            (
+                CASE
+                WHEN (m2.id = 0 OR m2.id IS NULL) THEN
+                    0
+                ELSE
+                    m2.id
+                END
+            ) AS parentId,
+            m1. NAME AS NAME,
+            m1.url AS url,
+            m1.levels AS levels,
+            m1.ismenu AS ismenu,
+            m1.num AS num,
+            m1. CODE AS CODE,
+            m1. STATUS AS STATUS,
+            m1.component,
+            IFNULL(m1.hidden, 0) AS hidden
+        FROM
+            t_sys_menu m1
+        LEFT JOIN t_sys_menu m2 ON m1.pcode = m2.code
+        WHERE
+            m1.id IN (
+                SELECT DISTINCT
+                    (tsr.menuid)
+                FROM
+                    t_sys_relation tsr
+                WHERE
+
+                <foreach collection="roleIds" open=" tsr.roleid IN (" separator="," close=")" item="id">
+                    #{id}
+                </foreach>
+            )
+        ORDER BY
+            levels,
+            num ASC
+    </select>
+
+</mapper>
